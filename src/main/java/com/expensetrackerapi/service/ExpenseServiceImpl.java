@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.expensetrackerapi.entity.Expense;
+import com.expensetrackerapi.exception.ExpenseNotFoundException;
 import com.expensetrackerapi.repository.ExpenseRepository;
 
 @Service
@@ -35,7 +36,7 @@ public class ExpenseServiceImpl implements ExpenseService{
 			return expense.get();
 		}
 		
-		throw new RuntimeException("Expense is not found for the id "+id);
+		throw new ExpenseNotFoundException("Expense is not found for the id "+id);
 		
 	}
 
