@@ -2,6 +2,9 @@ package com.expensetrackerapi.service;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -34,13 +37,14 @@ public class UserServiceImpl implements UserService{
 	}
 
 	@Override
-	public User readUser(Long id) {
-		return userRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("User not found for the id"+id));
+	public User readUser() {
+		Long userId = getLoggedInUser().getId();
+		return userRepository.findById(userId).orElseThrow(()->new ResourceNotFoundException("User not found for the id"+userId));
 	}
 
 	@Override
-	public User updateUser(UserModel user, Long id) {
-		User existingUser = readUser(id);
+	public User updateUser(UserModel user) {
+		User existingUser = readUser();
 		
 		existingUser.setName(user.getName() != null ? user.getName() : existingUser.getName());
 		existingUser.setEmail(user.getEmail() != null ? user.getName() : existingUser.getEmail());
@@ -50,9 +54,16 @@ public class UserServiceImpl implements UserService{
 	}
 
 	@Override
-	public void deleteUser(Long id) {
-		User user = readUser(id);
+	public void deleteUser() {
+		User user = readUser();
 		userRepository.delete(user);
+	}
+
+	@Override
+	public User getLoggedInUser() {
+		Authentication auth =  SecurityContextHolder.getContext().getAuthentication();
+		String email = auth.getName();
+		return userRepository.findByEmail(email).orElseThrow(()->new UsernameNotFoundException("User not found for the email"+email));
 	}
 
 }

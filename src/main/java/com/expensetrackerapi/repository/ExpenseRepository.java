@@ -1,6 +1,7 @@
 package com.expensetrackerapi.repository;
 
 import java.sql.Date;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,11 +11,13 @@ import com.expensetrackerapi.entity.Expense;
 
 public interface ExpenseRepository extends JpaRepository<Expense,Long>{
 
-	Page<Expense> findByCategory(String category, Pageable page);
+	Page<Expense> findByUserIdAndCategory(Long userId,String category, Pageable page);
 	
-	//select * from expenses where keyword LIKE '%keyword%'
-	Page<Expense> findByNameContaining(String keyword, Pageable Page);
+	Page<Expense> findByUserIdAndNameContaining(Long userId,String keyword, Pageable Page);
 	
-	//select * from expenses where date BETWEEN 'startDate' AND 'endDate' 
-	Page<Expense> findByDateBetween(Date startEnd, Date endDate,Pageable page);
+	Page<Expense> findByUserIdAndDateBetween(Long userId, Date startEnd, Date endDate,Pageable page);
+	
+	Page<Expense> findByUserId(Long userId,Pageable page);
+	
+	Optional<Expense> findByUserIdAndId(Long userId, Long id);
 }
