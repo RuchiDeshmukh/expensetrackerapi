@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +18,7 @@ public class JwtTokenUtil {
 	private final int JWTTOKEN_VALIDITY = 5*60*60;
 	
 
-	@Value("${jwt.secret}")
+	//@Value("${jwt.secret}")
 	private String secret="b2tech";
 
 	public String generateToken(UserDetails userDetails) {

@@ -4,83 +4,76 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.expensetrackerapi.security.CustomUserDetailsService;
 import com.expensetrackerapi.security.JwtRequestFilter;
 
 @Configuration
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-	
+public class WebSecurityConfig {
+
 	@Autowired
 	private CustomUserDetailsService userDetailsService;
+	
+	@Bean
+	public WebSecurityCustomizer webSecurityCustomizer() {
+	    return web -> web.ignoring().requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**");
+	}
+	
+	@Bean
+	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+		  http.csrf().disable() 
+		  .authorizeHttpRequests() 
+		  .requestMatchers("/login","/register", "/h2-console/**").permitAll()
+		  .requestMatchers("/api/v1/auth/**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
+		  .anyRequest().authenticated().and()
+		  .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+		  http.addFilterBefore(authenticationJwtTokenFilter(),UsernamePasswordAuthenticationFilter.class);
+		  http.httpBasic();
+		  
+		  return http.build();
+		  
+	}
+	
+	private static final String[] AUTH_WHITE_LIST = {
+			"/api/v1/auth/**",
+            "/v3/api-docs/**",
+            "/v3/api-docs.yaml",
+            "/swagger-ui/**",
+            "/swagger-ui.html"
+    };
 	
 	@Bean
 	public JwtRequestFilter authenticationJwtTokenFilter() {
 		return new JwtRequestFilter();
 	}
-	
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
-		
-		http.csrf().disable()
-			.authorizeRequests()
-			.antMatchers("/login","/register","/h2-console/**").permitAll()
-			.anyRequest().authenticated()
-			.and()
-			.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-		http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
-		http.httpBasic();
-	    http.headers().frameOptions().disable();
 
-	}
-	
-	
-	@Override
-	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-		
-		
-		/*
-		 * auth.inMemoryAuthentication()
-		 * .withUser("ruchi").password("1234").authorities("admin") .and()
-		 * .withUser("test").password("1234").authorities("user") .and()
-		 * .passwordEncoder(NoOpPasswordEncoder.getInstance());
-		 */
-		
-		/*
-		 * InMemoryUserDetailsManager userDetailsManager = new
-		 * InMemoryUserDetailsManager();
-		 * 
-		 * UserDetails user1 =
-		 * User.withUsername("ruchi").password("12345").authorities("admin").build();
-		 * UserDetails user2 =
-		 * User.withUsername("test").password("12345").authorities("user").build();
-		 * 
-		 * userDetailsManager.createUser(user1); userDetailsManager.createUser(user2);
-		 * 
-		 * auth.userDetailsService(userDetailsManager);
-		 */
-		
-		auth.userDetailsService(userDetailsService);
-	}
-	
 	@Bean
 	public PasswordEncoder passwordEncoder() {
-		//return NoOpPasswordEncoder.getInstance();
-		
+
 		return new BCryptPasswordEncoder();
+	}
+
+	@Bean
+	public DaoAuthenticationProvider authenticationProvider() {
+		DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+		authProvider.setUserDetailsService(userDetailsService);
+		authProvider.setPasswordEncoder(passwordEncoder());
+		return authProvider;
 	}
 	
 	@Bean
-	@Override
-	public AuthenticationManager authenticationManagerBean() throws Exception {
-		return super.authenticationManagerBean();
+	public AuthenticationManager authenticationManagerBean(AuthenticationConfiguration authConfig) throws Exception {
+		return authConfig.getAuthenticationManager();
 	}
+	
 
 }

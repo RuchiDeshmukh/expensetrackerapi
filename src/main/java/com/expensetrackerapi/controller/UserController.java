@@ -13,23 +13,26 @@ import com.expensetrackerapi.entity.User;
 import com.expensetrackerapi.entity.UserModel;
 import com.expensetrackerapi.service.UserService;
 
+import io.swagger.v3.oas.annotations.Operation;
+
 @RestController
 public class UserController {
 	
 	@Autowired
 	private UserService userService;
 
+	@Operation(summary = "Get logged in user profile", description = "Returns logged in user profile")
 	@GetMapping("/profile")
 	public ResponseEntity<User> readUser(){
 		return new ResponseEntity<User>(userService.readUser(),HttpStatus.OK);
 	}
 	
-	
+	@Operation(summary = "Update user", description = "Updates user")
 	@PutMapping("/profile")
 	public ResponseEntity<User> updateUser(@RequestBody UserModel user){
 		return new ResponseEntity<User>(userService.updateUser(user),HttpStatus.OK);
 	}
-	
+	@Operation(summary = "Delete logged in user", description = "Deletes logged in user")
 	@DeleteMapping("/deactivate")
 	public ResponseEntity<HttpStatus> deleteUser(){
 		userService.deleteUser();

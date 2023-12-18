@@ -1,7 +1,5 @@
 package com.expensetrackerapi.controller;
 
-import javax.validation.Valid;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +21,9 @@ import com.expensetrackerapi.security.CustomUserDetailsService;
 import com.expensetrackerapi.service.UserService;
 import com.expensetrackerapi.util.JwtTokenUtil;
 
+import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
+
 @RestController
 public class AuthController {
 
@@ -38,6 +39,7 @@ public class AuthController {
 	@Autowired
 	private JwtTokenUtil jwtTokenUtil;
 
+	@Operation(summary = "User login", description = "Logs in user with credentials and returns jwt that should be used in subsequest requests.")
 	@PostMapping("/login")
 	public ResponseEntity<JWTResponse> login(@RequestBody AuthModel authModel) throws Exception {
 
@@ -50,6 +52,7 @@ public class AuthController {
 		return new ResponseEntity<JWTResponse>(new JWTResponse(token) ,HttpStatus.OK);
 	}
 
+	@Operation(summary = "Register user", description = "Registers user with email")
 	@PostMapping("/register")
 	public ResponseEntity<User> save(@Valid @RequestBody UserModel user) throws ItemAlreadyExistsException {
 		return new ResponseEntity<User>(userService.createUser(user), HttpStatus.CREATED);
